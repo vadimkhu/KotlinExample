@@ -7,6 +7,7 @@ gradlew
 gradlew.bat
 .DS_Store
 /captures
+/app/src/main/AndroidManifest.xml
 .externalNativeBuild
 .cxx
 *.gradle
