@@ -1,6 +1,7 @@
 package ru.skillbranch.kotlinexample
 
 import androidx.annotation.VisibleForTesting
+import ru.skillbranch.kotlinexample.User.Factory.fullNameToPair
 import java.math.BigInteger
 import java.security.MessageDigest
 import java.security.SecureRandom
@@ -64,26 +65,27 @@ class User private constructor(
 
     constructor(
         firstName: String,
-        lastName: String,
+        lastName: String?,
         email: String,
-        saltAndHash: String,
+        rawSalt: String,
+        rawHash: String,
         rawPhone: String
     ) : this(firstName, lastName, email = email, rawPhone = rawPhone, meta = mapOf("src" to "csv")) {
-        salt = saltAndHash.split(':')[0].replace("[", "")
-        passwordHash = saltAndHash.split(':')[1]
+        salt = rawSalt
+        passwordHash = rawHash
     }
 
 
     init {
         println("First init block, primary constructor was called")
 
-        check(!firstName.isBlank()) { "FirstName must be not blank" }
+        check(firstName.isBlank()) { "FirstName must be not blank" }
         check(email.isNullOrBlank() || rawPhone.isNullOrBlank()) { "Email or phone ust be not blank " }
 
         phone = rawPhone
         login = email ?: phone!!
 
-        userInfo = """"
+        userInfo = """
              firstName: $firstName
              lastName: $lastName
              login: $login
@@ -130,7 +132,7 @@ class User private constructor(
             fullName: String,
             email: String? = null,
             password: String? = null,
-            phone: String? = null
+            phone: String? = null,
         ) : User {
             val (firstName, lastName) = fullName.fullNameToPair()
             return when {
@@ -140,6 +142,22 @@ class User private constructor(
 
             }
         }
+
+        fun makeUserFromCSV(
+            line: String,
+        ) : User {
+            var info = line.split(';')
+            val (firstName, lastName) = info[0].trim().fullNameToPair()
+            val (rawSalt, rawHash) = info[2].trim().split(':')
+            return User(
+                firstName,
+                lastName = lastName,
+                email = info[1].trim(),
+                rawSalt = rawSalt,
+                rawHash = rawHash,
+                rawPhone = info[3].trim())
+        }
+
         fun String.fullNameToPair(): Pair<String, String?> {
             return this.split(" ")
                 .filter { it.isNotBlank() }

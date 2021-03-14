@@ -24,9 +24,7 @@ object UserHolder {
     fun importUsers(list: List<String>): List<User> {
         var users = mutableListOf<User>()
         list.forEach {
-            var info = it.split(';')
-            val (firstName, lastName) = info[0].fullNameToPair()
-            var user = User(firstName, lastName!!, email = info[1], info[2], rawPhone = info[3])
+            var user = User.makeUserFromCSV(it)
             users.add(user)
         }
         return users.toList()
