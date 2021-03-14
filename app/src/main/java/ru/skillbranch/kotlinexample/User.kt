@@ -132,7 +132,7 @@ class User private constructor(
             fullName: String,
             email: String? = null,
             password: String? = null,
-            phone: String? = null,
+            phone: String? = null
         ) : User {
             val (firstName, lastName) = fullName.fullNameToPair()
             return when {
@@ -144,7 +144,7 @@ class User private constructor(
         }
 
         fun makeUserFromCSV(
-            line: String,
+            line: String
         ) : User {
             var info = line.split(';')
             val (firstName, lastName) = info[0].trim().fullNameToPair()
