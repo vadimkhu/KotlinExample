@@ -79,7 +79,7 @@ class User private constructor(
     init {
         println("First init block, primary constructor was called")
 
-        check(firstName.isBlank()) { "FirstName must be not blank" }
+        check(!firstName.isBlank()) { "FirstName must be not blank" }
         check(email.isNullOrBlank() || rawPhone.isNullOrBlank()) { "Email or phone ust be not blank " }
 
         phone = rawPhone
@@ -152,9 +152,11 @@ class User private constructor(
         fun makeUserFromCSV(
             line: String
         ) : User {
-            var info = line.split(';')
+            var info = line.trim().split(';')
             val (firstName, lastName) = info[0].trim().fullNameToPair()
             val (rawSalt, rawHash) = info[2].trim().split(':')
+            if (firstName.isBlank())
+                throw IllegalArgumentException("First Name is blank")
             return User(
                 firstName,
                 lastName = lastName,

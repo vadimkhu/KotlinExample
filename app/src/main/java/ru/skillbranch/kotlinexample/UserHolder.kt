@@ -42,8 +42,11 @@ object UserHolder {
     fun importUsers(list: List<String>): List<User> {
         var users = mutableListOf<User>()
         list.forEach {
-            var user = User.makeUserFromCSV(it)
-            users.add(user)
+            var line = it.trim()
+            if (line.isNotEmpty()) {
+                var user = User.makeUserFromCSV(line)
+                users.add(user)
+            }
         }
         return users.toList()
     }
