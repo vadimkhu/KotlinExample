@@ -94,19 +94,6 @@ class User private constructor(
              """.trimIndent()
     }
 
-    // Полное имя пользователя; email; соль:хеш пароля; телефон
-    // (Пример: " John Doe ;JohnDoe@unknow.com;[B@7591083d:c6adb4becdc64e92857e1e2a0fd6af84;;")
-    fun importUsers(list: List<String>): List<User> {
-        var users = mutableListOf<User>()
-        list.forEach {
-            var info = it.split(';')
-            val (firstName, lastName) = info[0].fullNameToPair()
-            var user = User(firstName, lastName, email = info[1], info[2], rawPhone = info[3])
-            users.add(user)
-        }
-        return users.toList()
-    }
-
     fun checkPassword(password: String) = encrypt(password) == passwordHash
 
     fun changePassword(oldPassword: String, newPassword: String) {
