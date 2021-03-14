@@ -11,9 +11,10 @@ object UserHolder {
         email: String,
         password: String
     ): User {
-        return User.makeUser(fullName, email = email, password = password)
-            .also { user -> map[user.login] = user }
-    }
+        if (map.contains(email.toLowerCase())) 
+            throw IllegalArgumentException("A user with this email already exists")
+        else return User.makeUser(fullName,email=email, password = password)
+            .also { user -> map[user.login] = user }    }
 
     fun registerUserByPhone(fullName: String, rawPhone: String) : User {
         if (!isPhoneValid(rawPhone))
