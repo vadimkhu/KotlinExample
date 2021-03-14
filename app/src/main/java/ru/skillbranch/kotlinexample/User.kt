@@ -29,7 +29,7 @@ class User private constructor(
     private var _login: String? = null
     var login: String
         set(value) {
-            _login = value?.toLowerCase()
+            _login = value.toLowerCase()
         }
         get() = _login!!
     private lateinit var salt: String
@@ -114,6 +114,12 @@ class User private constructor(
                 }
             }
         }.toString()
+    }
+
+    fun generateNewAuthCode(){
+        val code = generateAccessCode()
+        passwordHash = encrypt(code)
+        accessCode = code
     }
 
     private fun sendUserAccessCodeToUser(phone: String?, code: String) {
