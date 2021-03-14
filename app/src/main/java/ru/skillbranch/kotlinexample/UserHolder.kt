@@ -11,7 +11,7 @@ object UserHolder {
         email: String,
         password: String
     ): User {
-        if (map.contains(email.toLowerCase())) 
+        if (map.contains(email.toLowerCase()))
             throw IllegalArgumentException("A user with this email already exists")
         else return User.makeUser(fullName,email=email, password = password)
             .also { user -> map[user.login] = user }    }
@@ -27,14 +27,11 @@ object UserHolder {
     }
 
     fun requestAccessCode(login: String) : Unit {
-        var key = login.trim()
-        if (!key.contains("@"))
-            key = getPhoneNumber(key)
-        map[key]?.generateNewAuthCode()
+        map[getLogin(login)]?.generateNewAuthCode()
     }
 
     fun loginUser(login: String, password: String): String? {
-        return map[login.trim()]?.run {
+        return map[getLogin(login)]?.run {
             if (checkPassword(password)) this.userInfo
             else null
         }
@@ -55,4 +52,10 @@ object UserHolder {
     private fun getPhoneNumber(rawPhone: String) = rawPhone.replace("[^+\\d]".toRegex(), "")
 
     private fun isPhoneValid(rawPhone: String): Boolean = getPhoneNumber(rawPhone).matches("[+]\\d{11}".toRegex())
+
+    private fun getLogin(login: String) : String =
+        if (login.contains("@"))
+            login.trim()
+        else
+            getPhoneNumber(login)
 }
