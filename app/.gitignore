@@ -2,4 +2,5 @@
 /libs/*
 /src/androidTest/*
 /src/test/*
+/src/main/androidmanifest.xml
 /proguard-rules.pro

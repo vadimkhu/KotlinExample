@@ -140,7 +140,7 @@ class User private constructor(
 
             }
         }
-        private  fun String.fullNameToPair(): Pair<String, String?> {
+        fun String.fullNameToPair(): Pair<String, String?> {
             return this.split(" ")
                 .filter { it.isNotBlank() }
                 .run {
