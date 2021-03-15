@@ -35,28 +35,25 @@ object UserHolder {
     }
 
     fun importUsers(list: List<String>): List<User> {
-        var users = mutableListOf<User>()
-        list.forEach {
-            var line = it.trim()
-            if (line.isNotEmpty()) {
-                users.add(parseCsvLine(line))
-            }
-        }
-        return users.toList()
+        return list.map {
+            parseCsvLine(it)
+        }.toList()
     }
 
     fun parseCsvLine(line: String) : User {
         val info = line.split(";").map { item -> if (item.isNotEmpty()) item else "" }
         if (info.size != 5)
             throw java.lang.IllegalArgumentException("Incorrect user data in a CSV line")
+        val fname = info[0].trim()
         val salt = info[2].split(":")[0].trim()
         val hash = info[2].split(":")[1].trim()
-
+        val mail: String? = if (info[1].isNullOrEmpty()) null else info[1].trim()
+        val phone: String? = if (info[3].isNullOrEmpty()) null else info[3].trim()
         return User.makeUser(
-            info[0].trim(),
-            if (info[1].isNotEmpty()) info[1].trim() else null,
+            fname,
+            mail,
             null,
-            info[3].trim(),
+            phone,
             hash,
             salt)
     }
