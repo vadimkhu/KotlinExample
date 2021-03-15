@@ -20,7 +20,7 @@ object UserHolder {
         if (!isPhoneValid(rawPhone))
             throw IllegalArgumentException("Enter a valid phone number starting with a + and containing 11 digits")
 
-        return User.makeUser(fullName,null,null, phone = rawPhone).also { users[it.login] = it }
+        return User.makeUser(fullName,null,null, rawPhone).also { users[it.login] = it }
     }
 
     fun requestAccessCode(login: String) : Unit {

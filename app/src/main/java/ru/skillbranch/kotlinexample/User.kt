@@ -1,7 +1,6 @@
 package ru.skillbranch.kotlinexample
 
 import androidx.annotation.VisibleForTesting
-import ru.skillbranch.kotlinexample.User.Factory.fullNameToPair
 import java.lang.IllegalArgumentException
 import java.math.BigInteger
 import java.security.MessageDigest
@@ -16,13 +15,15 @@ class User private constructor(
 ) {
     val userInfo: String
     private val fullName: String
-        get() = listOfNotNull(firstName, lastName)
-            .joinToString { " " }
-            .capitalize()
-    private val intials: String
-        get() = listOfNotNull(firstName, lastName)
-            .map{ it.first().toUpperCase() }
-            .joinToString { " " }
+        get() = "${firstName.capitalize()} ${lastName?.capitalize() ?: ""}"
+//        get() = listOfNotNull(firstName, lastName)
+//            .joinToString { " " }
+//            .capitalize()
+    private val initials: String
+        get() = "${firstName.first().toUpperCase()} ${lastName?.first()?.toUpperCase() ?: ""}"
+//        get() = listOfNotNull(firstName, lastName)
+//            .map{ it.first().toUpperCase() }
+//            .joinToString { " " }
     private var phone: String? = null
         set(value) {
             field = value?.replace("[^+\\d]".toRegex(), "")
@@ -95,11 +96,13 @@ class User private constructor(
              lastName: $lastName
              login: $login
              fullName: $fullName
-             initials: $intials
+             initials: $initials
              email: $email
              phone: $phone
              meta: $meta
              """.trimIndent()
+
+        println(userInfo)
     }
 
     fun checkPassword(password: String) = encrypt(password) == passwordHash
