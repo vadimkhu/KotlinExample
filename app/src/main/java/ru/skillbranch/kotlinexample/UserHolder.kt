@@ -35,10 +35,19 @@ object UserHolder {
     }
 
     fun importUsers(list: List<String>): List<User> {
-        return list.map {
-            println(it)
-            parseCsvLine(it)
-        }.toList()
+        var usersList = mutableListOf<User>()
+        list.forEach {
+            if (it.isNotEmpty()) {
+                val user = parseCsvLine(it)
+                usersList.add(user)
+                users[user.login] = user
+            }
+        }
+        return usersList.toList()
+//        return list.map {
+//            println(it)
+//            parseCsvLine(it)
+//        }.toList()
     }
 
     fun parseCsvLine(line: String) : User {
