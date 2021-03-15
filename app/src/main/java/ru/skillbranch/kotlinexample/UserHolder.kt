@@ -36,6 +36,7 @@ object UserHolder {
 
     fun importUsers(list: List<String>): List<User> {
         return list.map {
+            println(it)
             parseCsvLine(it)
         }.toList()
     }

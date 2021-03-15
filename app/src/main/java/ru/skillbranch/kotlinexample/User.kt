@@ -97,7 +97,7 @@ class User private constructor(
             login = this
         }
         check(!login.isNullOrBlank()) { "Email or phone must be not blank" }
-        
+
         userInfo = """
              firstName: $firstName
              lastName: $lastName
