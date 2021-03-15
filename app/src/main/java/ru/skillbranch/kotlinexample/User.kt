@@ -15,12 +15,18 @@ class User private constructor(
 ) {
     val userInfo: String
     private val fullName: String
-        get() = "${firstName.capitalize()} ${lastName?.capitalize() ?: ""}"
+        get() = if (lastName.isNullOrEmpty())
+                    "${firstName.capitalize()}"
+                else
+                    "${firstName.capitalize()} ${lastName!!.capitalize()}"
 //        get() = listOfNotNull(firstName, lastName)
 //            .joinToString { " " }
 //            .capitalize()
     private val initials: String
-        get() = "${firstName.first().toUpperCase()} ${lastName?.first()?.toUpperCase() ?: ""}"
+        get() = if (lastName.isNullOrEmpty())
+                    "${firstName.first().toUpperCase()}"
+                else
+                    "${firstName.first().toUpperCase()} ${lastName!!.first()?.toUpperCase()}"
 //        get() = listOfNotNull(firstName, lastName)
 //            .map{ it.first().toUpperCase() }
 //            .joinToString { " " }
