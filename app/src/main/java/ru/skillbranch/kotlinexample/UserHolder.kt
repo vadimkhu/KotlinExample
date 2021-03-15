@@ -1,37 +1,34 @@
 package ru.skillbranch.kotlinexample
 
-import ru.skillbranch.kotlinexample.User
-import ru.skillbranch.kotlinexample.User.Factory.fullNameToPair
-
 object UserHolder {
-    private val map = mutableMapOf<String, User>()
+    private val users = mutableMapOf<String, User>()
 
     fun registerUser(
         fullName: String,
         email: String,
         password: String
     ): User {
-        if (map.contains(email.toLowerCase()))
+        if (users.contains(email.toLowerCase()))
             throw IllegalArgumentException("A user with this email already exists")
         else return User.makeUser(fullName,email=email, password = password)
-            .also { user -> map[user.login] = user }    }
+            .also { user -> users[user.login] = user }    }
 
     fun registerUserByPhone(fullName: String, rawPhone: String) : User {
+        if (users.contains(getPhoneNumber(rawPhone)))
+            throw  IllegalArgumentException("A user with this phone already exists")
+
         if (!isPhoneValid(rawPhone))
             throw IllegalArgumentException("Enter a valid phone number starting with a + and containing 11 digits")
 
-        if (map.contains(getPhoneNumber(rawPhone)))
-            throw  IllegalArgumentException("A user with this phone already exists")
-
-        return User.makeUser(fullName,null,null, phone = rawPhone).also { map[it.login] = it }
+        return User.makeUser(fullName,null,null, phone = rawPhone).also { users[it.login] = it }
     }
 
     fun requestAccessCode(login: String) : Unit {
-        map[getLogin(login)]?.generateNewAuthCode()
+        users[getLogin(login)]?.requestAccessCode()
     }
 
     fun loginUser(login: String, password: String): String? {
-        return map[getLogin(login)]?.run {
+        return users[getLogin(login)]?.run {
             if (checkPassword(password)) this.userInfo
             else null
         }
@@ -42,11 +39,26 @@ object UserHolder {
         list.forEach {
             var line = it.trim()
             if (line.isNotEmpty()) {
-                var user = User.makeUserFromCSV(line)
-                users.add(user)
+                users.add(parseCsvLine(line))
             }
         }
         return users.toList()
+    }
+
+    fun parseCsvLine(line: String) : User {
+        val info = line.split(";").map { item -> if (item.isNotEmpty()) item else "" }
+        if (info.size != 5)
+            throw java.lang.IllegalArgumentException("Incorrect user data in a CSV line")
+        val salt = info[2].split(":")[0].trim()
+        val hash = info[2].split(":")[1].trim()
+
+        return User.makeUser(
+            info[0].trim(),
+            if (info[1].isNotEmpty()) info[1].trim() else null,
+            null,
+            info[3].trim(),
+            hash,
+            salt)
     }
 
     private fun getPhoneNumber(rawPhone: String) = rawPhone.replace("[^+\\d]".toRegex(), "")

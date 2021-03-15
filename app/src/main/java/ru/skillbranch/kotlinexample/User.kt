@@ -2,6 +2,7 @@ package ru.skillbranch.kotlinexample
 
 import androidx.annotation.VisibleForTesting
 import ru.skillbranch.kotlinexample.User.Factory.fullNameToPair
+import java.lang.IllegalArgumentException
 import java.math.BigInteger
 import java.security.MessageDigest
 import java.security.SecureRandom
@@ -32,7 +33,7 @@ class User private constructor(
             _login = value.toLowerCase()
         }
         get() = _login!!
-    private lateinit var salt: String
+    private var salt: String = ByteArray(16).also { SecureRandom().nextBytes(it)}.toString()
     private lateinit var passwordHash: String
     @VisibleForTesting(otherwise = VisibleForTesting.NONE)
     var accessCode: String? = null
@@ -45,7 +46,6 @@ class User private constructor(
         password: String
     ): this(firstName, lastName, email = email, meta= mapOf("auth" to "password")) {
         println("Secondary mail constructor")
-        salt = ByteArray(16).also { SecureRandom().nextBytes(it)}.toString()
         passwordHash = encrypt(password)
     }
 
@@ -56,27 +56,21 @@ class User private constructor(
         rawPhone: String
     ) : this(firstName, lastName, rawPhone = rawPhone, meta = mapOf("auth" to "sms")) {
         println("Secondary phone constructor ")
-        val code: String = generateAccessCode()
-        salt = ByteArray(16).also { SecureRandom().nextBytes(it)}.toString()
-        passwordHash = encrypt(code)
-        accessCode = code
+        val code: String = requestAccessCode()
         sendUserAccessCodeToUser(rawPhone, code)
     }
 
     constructor(
         firstName: String,
         lastName: String?,
-        email: String,
-        rawSalt: String,
-        rawHash: String,
-        rawPhone: String
-    ) : this(firstName,
-             lastName,
-             email = if (email.isBlank()) null else email,
-             rawPhone = if (rawPhone.isBlank()) null else rawPhone,
-             meta = mapOf("src" to "csv")) {
-        salt = rawSalt
-        passwordHash = rawHash
+        email: String?,
+        salt: String,
+        passwordHash: String,
+        rawPhone: String?
+    ) : this(firstName, lastName, email, rawPhone, meta = mapOf("src" to "csv")) {
+        println("Secondary csv constructor")
+        this.salt = salt
+        this.passwordHash = passwordHash
     }
 
 
@@ -86,8 +80,15 @@ class User private constructor(
         check(!firstName.isBlank()) { "FirstName must be not blank" }
         check(email.isNullOrBlank() || rawPhone.isNullOrBlank()) { "Email or phone ust be not blank " }
 
-        phone = rawPhone
-        login = email ?: phone!!
+        rawPhone?.run{
+            if (isNotEmpty()) {
+                phone = this
+                login = phone!!
+            }
+        }
+        email?.run {
+            login = this
+        }
 
         userInfo = """
              firstName: $firstName
@@ -97,6 +98,7 @@ class User private constructor(
              initials: $intials
              email: $email
              phone: $phone
+             meta: $meta
              """.trimIndent()
     }
 
@@ -120,10 +122,11 @@ class User private constructor(
         }.toString()
     }
 
-    fun generateNewAuthCode(){
-        val code = generateAccessCode()
-        passwordHash = encrypt(code)
-        accessCode = code
+    fun requestAccessCode(): String {
+        return generateAccessCode().also {
+            passwordHash = encrypt(it)
+            accessCode = it
+        }
     }
 
     private fun sendUserAccessCodeToUser(phone: String?, code: String) {
@@ -142,32 +145,25 @@ class User private constructor(
             fullName: String,
             email: String? = null,
             password: String? = null,
-            phone: String? = null
+            phone: String? = null,
+            passwordHash: String? = null,
+            salt: String? = null
         ) : User {
             val (firstName, lastName) = fullName.fullNameToPair()
             return when {
+                passwordHash != null && salt != null -> User(
+                    firstName,
+                    lastName,
+                    email,
+                    salt,
+                    passwordHash,
+                    phone
+                )
                 !phone.isNullOrBlank() -> User(firstName, lastName, phone)
                 !email.isNullOrBlank() && !password.isNullOrBlank() -> User(firstName, lastName, email, password)
                 else -> throw IllegalArgumentException("Email or phone must be not null or blank")
 
             }
-        }
-
-        fun makeUserFromCSV(
-            line: String
-        ) : User {
-            var info = line.trim().split(';')
-            val (firstName, lastName) = info[0].trim().fullNameToPair()
-            val (rawSalt, rawHash) = info[2].trim().split(':')
-            if (firstName.isBlank())
-                throw IllegalArgumentException("First Name is blank")
-            return User(
-                firstName,
-                lastName = lastName,
-                email = info[1].trim(),
-                rawSalt = rawSalt,
-                rawHash = rawHash,
-                rawPhone = info[3].trim())
         }
 
         fun String.fullNameToPair(): Pair<String, String?> {
